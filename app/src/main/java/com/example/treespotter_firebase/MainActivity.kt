@@ -2,12 +2,10 @@ package com.example.treespotter_firebase
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import java.util.Date
 
-
-//private val Firebase.firestore: Any
-//    get() {}
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,7 +14,8 @@ class MainActivity : AppCompatActivity() {
 
         val db = Firebase.firestore
 
-        val tree = mapOf("name" to "pine", "dateSpotter" to Date())
+//        val tree = mapOf("name" to "pine", "dateSpotter" to Date())
+        val tree = mapOf("name" to "oak", "dateSpotter" to Date())
 
         db.collection("tree").add(tree)
     }
