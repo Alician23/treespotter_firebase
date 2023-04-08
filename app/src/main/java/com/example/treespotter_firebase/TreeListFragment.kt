@@ -29,7 +29,10 @@ class TreeListFragment : Fragment() {
         if (recyclerView !is RecyclerView) { throw java.lang.RuntimeException("TreeListFragment view should be a recycler view") }
 
         val trees = listOf<Tree>()
-        val adapter = TreeRecyclerViewAdapter(trees)
+        val adapter = TreeRecyclerViewAdapter(trees) { tree, isFavorite ->
+            treeViewModel.setIsFavorite(tree, isFavorite)
+        }
+
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
 

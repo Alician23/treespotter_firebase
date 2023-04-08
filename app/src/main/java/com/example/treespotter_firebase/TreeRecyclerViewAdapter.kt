@@ -3,10 +3,11 @@ package com.example.treespotter_firebase
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class TreeRecyclerViewAdapter(var trees: List<Tree>):
+class TreeRecyclerViewAdapter(var trees: List<Tree>, val treeHeartListener: (Tree, Boolean) -> Unit ):
     RecyclerView.Adapter<TreeRecyclerViewAdapter.ViewHolder>()
 
 {
@@ -14,6 +15,13 @@ class TreeRecyclerViewAdapter(var trees: List<Tree>):
             fun bind(tree:Tree) {
                 view.findViewById<TextView>(R.id.tree_name).text = tree.name
                 view.findViewById<TextView>(R.id.date_spotted).text = "${tree.dateSpotted}"
+                view.findViewById<CheckBox>(R.id.heart_check).apply {
+                    isChecked = tree.favorite ?: false
+                    setOnCheckedChangeListener { checkbox, inChecked ->
+                        treeHeartListener(tree, isChecked)
+
+                    }
+                }
             }
         }
 
