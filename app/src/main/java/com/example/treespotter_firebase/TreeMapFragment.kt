@@ -8,11 +8,13 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.runtime.internal.isLiveLiteralsEnabled
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -79,12 +81,34 @@ class TreeMapFragment : Fragment() {
         // has user already granted permission?
         if (ContextCompat.checkSelfPermission(requireActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
             locationPermissionGranted = true
             Log.d(TAG, "permission already granted")
+            updateMap()
+        }else {
+            //  ask for permission before launch
+            val requestLocationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                if (granted) {
+                    Log.d(TAG, "User granted permission")
+                    setAddTreeButtonEnabled(true)
+                    fusedLocationProvider = LocationServices.getFusedLocationProviderClient(requireActivity())
+                } else {
+                    Log.d(TAG, "user did not grant permission")
+                    setAddTreeButtonEnabled(false)
+                    showSnackbar(getString(R.string.give_permission))
+                }
+
+                updateMap()
+
+
+
+            }
+
+            requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+
         }
     }
-
-    override fun onCreateView(
+     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
@@ -99,11 +123,13 @@ class TreeMapFragment : Fragment() {
         val mapFragment =  childFragmentManager.findFragmentById(R.id.map_view) as SupportMapFragment?
         mapFragment?.getMapAsync(mapReadyCallback)
 
-        // todo request user's permission to access device location
+        //  request user's permission to access device location
+         requestLocationPermission()
 
         // todo disable add tree button until location is available
+        setAddTreeButtonEnabled(false)
 
-        // to draw existing trees on map
+        // todo draw existing trees on map
 
 
         return mainView
