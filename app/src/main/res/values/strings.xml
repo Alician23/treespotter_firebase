@@ -5,4 +5,7 @@
     <string name="map">Map</string>
     <string name="add_tree" >Add tree</string>
     <string name="give_permission">You\'ll need to grant location permission to add trees</string>
+    <string name="no_location">no location</string>
+    <string name="grant_location_permission">Please grant permission to add tree</string>
+    <string name="added_tree">Added %1$s tree</string>
 </resources>

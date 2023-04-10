@@ -1,6 +1,7 @@
 package com.example.treespotter_firebase
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -15,12 +16,16 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.GeoPoint
+import java.util.*
 
 private const val TAG = "TREE_MAP_FRAGMENT"
 
@@ -85,6 +90,9 @@ class TreeMapFragment : Fragment() {
             locationPermissionGranted = true
             Log.d(TAG, "permission already granted")
             updateMap()
+            setAddTreeButtonEnabled(true)
+            fusedLocationProvider = LocationServices.getFusedLocationProviderClient(requireActivity())
+
         }else {
             //  ask for permission before launch
             val requestLocationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -100,14 +108,42 @@ class TreeMapFragment : Fragment() {
 
                 updateMap()
 
-
-
             }
 
             requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
 
         }
     }
+
+    @SuppressLint("MissingPermission")
+    private fun moveMapToUserLocation() {
+
+        if (map == null) {
+            return
+        }
+
+        if (locationPermissionGranted) {
+            map?.isMyLocationEnabled = true
+            map?.uiSettings?.isMyLocationButtonEnabled = true
+
+            fusedLocationProvider?.lastLocation?.addOnCompleteListener { getLocationTask ->
+              val location = getLocationTask.result
+              if (location != null) {
+                  Log.d(TAG, "User's location $location")
+                  val center = LatLng(location.latitude, location.longitude)
+                  val zoomLevel = 8f
+                  map?.moveCamera(CameraUpdateFactory.newLatLngZoom(center, zoomLevel))
+                  movedMapToUsersLocation = true
+
+              }else {
+                  showSnackbar(getString(R.string.no_location))
+              }
+            }
+        }
+
+
+    }
+
      override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -118,21 +154,58 @@ class TreeMapFragment : Fragment() {
         addTreeButton = mainView.findViewById(R.id. add_tree)
         addTreeButton.setOnClickListener {
             // todo add tree at user's location -if location permission granted and location available
+            addTreeAtLocation()
         }
 
         val mapFragment =  childFragmentManager.findFragmentById(R.id.map_view) as SupportMapFragment?
         mapFragment?.getMapAsync(mapReadyCallback)
 
         //  request user's permission to access device location
-         requestLocationPermission()
+         setAddTreeButtonEnabled(false)
 
         // todo disable add tree button until location is available
-        setAddTreeButtonEnabled(false)
 
+         requestLocationPermission()
         // todo draw existing trees on map
 
 
         return mainView
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun addTreeAtLocation() {
+
+        if (map == null) { return }
+        if (fusedLocationProvider == null) { return }
+        if ( !locationPermissionGranted) {
+            showSnackbar(getString(R.string.grant_location_permission))
+            return
+        }
+
+        fusedLocationProvider?.lastLocation?.addOnCompleteListener(requireActivity()) { locationRequestTask ->
+
+            val location = locationRequestTask.result
+            if (location != null) {
+                val treeName = getTreeName()
+                val tree = Tree(
+                    name = treeName,
+                    dateSpotted = Date(),
+                    location = GeoPoint(location.latitude, location.longitude)
+
+                )
+                treeViewModel.addTree(tree)
+                movedMapToUsersLocation()
+                showSnackbar(getString(R.string.added_tree, treeName))
+
+            } else
+                showSnackbar(getString(R.string.no_location))
+            }
+
+    }
+
+    private fun getTreeName(): String {
+        return listOf("Fir","Oak", "Pine", "Redwood").random()
+
     }
 
     companion object {
