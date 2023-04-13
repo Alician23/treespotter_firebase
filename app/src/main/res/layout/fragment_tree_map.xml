@@ -26,7 +26,7 @@
         android:layout_marginBottom="@dimen/fab_spacing"
         android:clickable="true"
         android:contentDescription="@string/add_tree"
-        android:src="@drawable/tree"
+        android:src="@drawable/tree_small"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

@@ -1,6 +1,6 @@
 package com.example.treespotter_firebase
 
-import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.pm.PackageManager
@@ -235,7 +235,7 @@ class TreeMapFragment : Fragment() {
 
                 )
                 treeViewModel.addTree(tree)
-                movedMapToUsersLocation()
+                moveMapToUserLocation()
                 showSnackbar(getString(R.string.added_tree, treeName))
 
             } else
