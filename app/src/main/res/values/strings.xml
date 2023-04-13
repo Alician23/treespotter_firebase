@@ -1,11 +1,14 @@
 <resources>
-    <string name="app_name">treespotter_firebase</string>
-    <string name="Map" />
-    <string name="list">list</string>
+    <string name="app_name">TreeSpotter_Firebase</string>
+    <string name="list">List</string>
     <string name="map">Map</string>
     <string name="add_tree" >Add tree</string>
     <string name="give_permission">You\'ll need to grant location permission to add trees</string>
-    <string name="no_location">no location</string>
+    <string name="no_location">No location available</string>
     <string name="grant_location_permission">Please grant permission to add tree</string>
-    <string name="added_tree">Added %1$s tree</string>
+    <string name="added_tree">Added %1$s tree!</string>
+    <string name="confirm_delete_tree">Delete tree %1$s?</string>
+    <string name="Delete">Delete?</string>
+    <string name="tree_deleted">Deleted tree %1$s</string>
+    <string name="delete">Delete</string>
 </resources>

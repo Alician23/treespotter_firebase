@@ -59,4 +59,10 @@ class TreeViewModel : ViewModel() {
             }
 
     }
+
+    // deleteTree method deletes trees in Firebase
+    fun deleteTree(tree: Tree) {
+        tree.documentReference?.delete()
+
+    }
 }

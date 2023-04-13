@@ -2,6 +2,7 @@ package com.example.treespotter_firebase
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -20,8 +21,10 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.GeoPoint
@@ -53,14 +56,41 @@ class TreeMapFragment : Fragment() {
 
         Log.d(TAG, "Google map ready")
         map = googleMap
+
+        googleMap.setOnInfoWindowClickListener{ marker  ->
+            val treeForMarker = marker.tag as Tree
+            requestDeleteTree(treeForMarker)
+        }
         updateMap()
     }
 
+    private fun requestDeleteTree(tree: Tree) {
+
+        // Ask user for permission by showing delete dialog pop up window to view  before deleting
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.delete))
+            .setMessage(getString(R.string.confirm_delete_tree, tree.name))
+            .setPositiveButton(android.R.string.ok) { dialog, id ->
+
+                treeViewModel.deleteTree(tree)
+            }
+            .setNegativeButton(android.R.string.cancel) { dialog, id ->
+                // do nothing
+            }
+            .create()
+            .show()
+
+    }
+
     private fun updateMap() {
-        // to draw markers
-        // draw blue dot at user's location
-        // show no location  message if location permission not granted.
-        // or device does not have location enabled.
+
+        drawTrees()
+
+        if (locationPermissionGranted) {
+            if (!movedMapToUsersLocation) {
+                moveMapToUserLocation()
+            }
+        }
     }
 
     private  fun setAddTreeButtonEnabled(isEnabled: Boolean) {
@@ -165,8 +195,15 @@ class TreeMapFragment : Fragment() {
 
         // todo disable add tree button until location is available
 
+         // request user's permission to access device location
          requestLocationPermission()
-        // todo draw existing trees on map
+
+
+         // todo draw existing trees on map
+         treeViewModel.latestTrees.observe(requireActivity()) { latestTrees ->
+             treeList = latestTrees
+             drawTrees()
+         }
 
 
         return mainView
@@ -175,9 +212,13 @@ class TreeMapFragment : Fragment() {
     @SuppressLint("MissingPermission")
     private fun addTreeAtLocation() {
 
-        if (map == null) { return }
-        if (fusedLocationProvider == null) { return }
-        if ( !locationPermissionGranted) {
+        if (map == null) {
+            return
+        }
+        if (fusedLocationProvider == null) {
+            return
+        }
+        if (!locationPermissionGranted) {
             showSnackbar(getString(R.string.grant_location_permission))
             return
         }
@@ -199,7 +240,39 @@ class TreeMapFragment : Fragment() {
 
             } else
                 showSnackbar(getString(R.string.no_location))
+        }
+
+    }
+
+    private fun drawTrees() {
+        if (map == null) { return }
+
+        for (marker in treeMarkers ) {
+            marker.remove()
+        }
+
+        for (tree in treeList) {
+
+            // make a marker for each tree and add to the map
+            tree. location?.let { geoPoint ->
+
+                // Checking to see if tree is favorite. If yes, heart is displayed. Otherwise, tree is selected.
+                val isFavorite = tree.favorite ?: false
+                val iconId = if (isFavorite) R.drawable.filled_heart_small else R.drawable.tree_small
+
+                val markerOptions = MarkerOptions()
+                    .position(LatLng(geoPoint.latitude, geoPoint.longitude))
+                    .title(tree.name)
+                    .snippet( "Spotted on ${tree.dateSpotted}")
+                    .icon(BitmapDescriptorFactory.fromResource(iconId))
+
+
+                map?.addMarker(markerOptions)?.also { marker ->
+                    treeMarkers.add(marker)
+                    marker.tag = tree
+                }
             }
+        }
 
     }
 
