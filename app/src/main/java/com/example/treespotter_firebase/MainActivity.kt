@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
             val transaction = supportFragmentManager.beginTransaction()
             when (tag) {
                 "MAP" -> transaction.replace(R.id.fragmentContainerView, TreeMapFragment.newInstance(), "MAP" )
-                "List" -> transaction.replace(R.id.fragmentContainerView, TreeListFragment.newInstance(), "LIST")
+                "LIST" -> transaction.replace(R.id.fragmentContainerView, TreeListFragment.newInstance(), "LIST")
             }
             transaction.commit() // to make changes
         }
